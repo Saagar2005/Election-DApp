@@ -60,8 +60,9 @@ contract Election {
         candidates[pref[1]-1].score += 3;
         candidates[pref[2]-1].score += 1;
         voters[msg.sender].voted = true;
+    }
         // Determine the winning candidate.
-    function winningCandidate() public view returns (uint256 winningCandidate_)
+    function winningCandidate() public view returns (uint256 winner_)
     {
         uint256 max = 0;
         for(uint256 i =1; i< candidates.length; i++)
@@ -83,4 +84,4 @@ contract Election {
         uint256 index = winningCandidate();
         return candidates[index].name;
     }
-}}
+}
