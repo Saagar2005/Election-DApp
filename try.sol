@@ -1,66 +1,110 @@
-// SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.18;
+pragma solidity ^0.8.9;
 
-contract Election {
-    struct Voter {
-        bool voted; // if true, this voter already voted
-        uint256 pref1; //Preferences = Indices corresponding to candidates
-        uint256 pref2;
-        uint256 pref3;
-    }
-
+contract GymkhanaElection {
     struct Candidate {
-        string name; // short name (up to 32 bytes)
-        uint256 score; // total score
+        string name;
+        uint256 voteCount;
+        address candidateAddress;
     }
 
-    // This is the leader (creator) of the election.
-    address public leader;
+    struct Voter {
+        bool registered;
+        bool voted;
+        address[] preferences;
+    }
 
-    // This declares a state variable that
-    // maps a `Voter` to each possible address.
+    address public owner;
+    uint256 public registrationDeadline;
+    uint256 public votingDeadline;
+    uint256 public totalVotes;
+    Candidate[] public candidates;
     mapping(address => Voter) public voters;
 
-    // A dynamically-sized array of `Candidate` structs.
-    Candidate[] public candidates;
+    event CandidateRegistered(string name);
+    event VoterRegistered(address voter);
+    event VoteCast(address voter, address[] preferences);
+    event ElectionResult(string winner, uint256 voteCount);
 
-    constructor(string[] memory _candidateNames) {
-        leader = msg.sender;
-        for (uint256 i = 0; i < _candidateNames.length; i++) {
-            candidates.push(Candidate({name: _candidateNames[i], score: 0}));
-        }
+    constructor(uint256 _registrationDeadline, uint256 _votingDeadline) {
+        owner = msg.sender;
+        registrationDeadline = _registrationDeadline;
+        votingDeadline = _votingDeadline;
     }
 
-    function castVote(uint256 pref1, uint256 pref2, uint256 pref3) external {
-        Voter storage voter = voters[msg.sender];
-        require(!voter.voted, "Already voted.");
-        candidates[pref1].score += 5;
-        candidates[pref2].score += 3;
-        candidates[pref3].score += 1;
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can call this function");
+        _;
+    }
+
+    modifier onlyRegisteredVoter() {
+        require(voters[msg.sender].registered, "Only registered voter can call this function");
+        _;
+    }
+
+    modifier beforeRegistrationDeadline() {
+        require(block.timestamp < registrationDeadline, "Registration deadline has passed");
+        _;
+    }
+
+    modifier beforeVotingDeadline() {
+        require(block.timestamp < votingDeadline, "Voting deadline has passed");
+        _;
+    }
+
+    function registerCandidate(string memory _name, address _candidateAddress) public onlyOwner beforeRegistrationDeadline {
+        candidates.push(Candidate(_name, 0, _candidateAddress));
+        emit CandidateRegistered(_name);
+    }
+
+    function registerVoter(address _voter) public onlyOwner beforeRegistrationDeadline {
+        voters[_voter].registered = true;
+        emit VoterRegistered(_voter);
+    }
+
+    function castVote(address[] memory _preferences) public onlyRegisteredVoter beforeVotingDeadline {
+        require(!voters[msg.sender].voted, "You have already voted");
+        require(_preferences.length == candidates.length, "Invalid number of preferences");
+
+        uint256[] memory points = new uint256[](3);
+        points[0] = 5;
+        points[1] = 3;
+        points[2] = 1;
+
+        for (uint256 i = 0; i < _preferences.length; i++) {
+            require(voters[msg.sender].preferences.length < 3, "You can only vote for three candidates");
+            require(voters[msg.sender].preferences.length == i || _preferences[i] != voters[msg.sender].preferences[i], "Duplicate vote");
+
+            voters[msg.sender].preferences.push(_preferences[i]);
+            candidates[getIndex(_preferences[i])].voteCount += points[i];
+            totalVotes += points[i];
+        }
+
         voters[msg.sender].voted = true;
-        
+        emit VoteCast(msg.sender, _preferences);
     }
 
-    // Determine the winning candidate.
-    function winningCandidate() public view returns (uint256 winningCandidate_)
-    {
-        uint256 max = 0;
-        for(uint256 i =1; i< candidates.length; i++)
-        {
-           if(candidates[i].score> candidates[max].score)
-                 max = i;
+    function declareWinner() public onlyOwner {
+        require(block.timestamp >= votingDeadline, "Voting is still ongoing");
+
+        uint256 maxVoteCount = 0;
+        uint256 winnerIndex = 0;
+
+        for (uint256 i = 0; i < candidates.length; i++) {
+            if (candidates[i].voteCount > maxVoteCount) {
+                maxVoteCount = candidates[i].voteCount;
+                winnerIndex = i;
+            }
         }
-         require(!(candidates[max].score == 0), "No votes have been casted.");
-         return max;
-        // Return the index of the winner in `winningCandidate_`
-        // Error and revert if no votes have been cast yet.
+
+        emit ElectionResult(candidates[winnerIndex].name, maxVoteCount);
     }
 
-    // Calls winningCandidate() function to get the index
-    // of the winner and then returns the name of the winner
-    function winningCandidateName() external view returns (string memory winnerName_)
-    {
-        uint256 index = winningCandidate();
-        return candidates[index].name;
+    function getIndex(address _candidate) private view returns (uint256) {
+        for (uint256 i = 0; i < candidates.length; i++) {
+            if (candidates[i].candidateAddress == _candidate) {
+                return i;
+            }
+        }
+        revert("Candidate not found");
     }
 }
