@@ -9,7 +9,7 @@ contract Election {
 
     struct Candidate {
         string name; // short name (up to 32 bytes)
-        uint256 score; // total votes
+        uint256 score; // total score
         address id;
     }
 
