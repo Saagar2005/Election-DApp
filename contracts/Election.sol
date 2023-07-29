@@ -9,7 +9,7 @@ contract Election {
 
     struct Candidate {
         string name; // short name (up to 32 bytes)
-        uint256 score; // total score
+        uint256 score; // total votes
         address id;
     }
 
@@ -24,13 +24,14 @@ contract Election {
     constructor() {
         leader = msg.sender;
     }
+//register the voter
     function regVoter() external
     {
          Voter storage voter = voters[msg.sender];
          require(voter.registered == false, "Voter is already registered");
          voter.registered = true;
     }
-
+//register the candidate
     function regCandidate(string memory name) external {
         address ID = msg.sender;
         uint256 flag =0;
@@ -45,7 +46,7 @@ contract Election {
         if(flag==0)
         candidates.push(Candidate({name: name, score: 0, id:msg.sender}));
     }
-
+//This function checks if the voter is registered or not
     function isVoter() public view returns(bool isVoter_) {
         if(voters[msg.sender].registered == true)
         return true;
