@@ -20,6 +20,7 @@ contract Election {
     mapping(address => Voter) public voters;
 
     Candidate[] public candidates;
+    string[] names;
 
     constructor() {
         leader = msg.sender;
@@ -44,7 +45,10 @@ contract Election {
             }
         }
         if(flag==0)
+        {
         candidates.push(Candidate({name: name, score: 0, id:msg.sender}));
+        names.push(name);
+        }
     }
 // This function checks if the voter is registered or not
     function isVoter() public view returns(bool isVoter_) {
@@ -61,6 +65,10 @@ contract Election {
         candidates[pref[1]-1].score += 3;
         candidates[pref[2]-1].score += 1;
         voters[msg.sender].voted = true;
+    }
+
+    function showCandidates() public view returns (string[] memory name_) {
+        return names;
     }
         // Determine the winning candidate.
     function winningCandidate() public view returns (uint256 winner_)
