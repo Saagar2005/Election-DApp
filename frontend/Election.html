@@ -11,16 +11,20 @@
     <button id = 'RegVoter' onclick='RegVoter()'> Register as a Voter</button>
     <button id = 'Vote' onclick='Vote()'>Vote</button>
     <button id = 'RegCandidate' onclick="RegCand()">Register as a Candidate</button>
+    <button id = 'Result' onclick='Result()'>Get result</button>
 <script>
     function RegVoter() {
         document.getElementById('RegVoter').innerHTML=contracts.regVoter();
     }
     function Vote() {
+        
         document.getElementById('Vote').innerHTML=contracts.castVote();
     }
     function RegCand() {
         document.getElementById('RegCandidate').innerHTML=contracts.regCandidate();
     }
+    function Result() {
+        document.getElementById('Result').innerHTML = contracts.winningCandidateName();
 </script>
 </body>
 </html>
