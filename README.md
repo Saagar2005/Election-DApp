@@ -52,4 +52,4 @@ Right-click on index.html > Open with Live Server
 
 The Gymkhana Elections DApp offers an elegant and user-friendly interface that allows individuals to take part in the election process with utmost security and transparency. By seamlessly connecting their MetaMask wallets, users can register as voters, exercise their right to cast votes, and access the winning Candidate of the election. The DApp harnesses the power of the Ethereum blockchain and smart contracts to ensure a secure, honest, and accurate election process.
 
-With the aid of the accompanying manual, users can confidently engage in electoral affairs and play a pivotal role in choosing their leaders in the election
+With the aid of the accompanying manual, users can confidently engage in electoral affairs and play a pivotal role in choosing their leaders in the election.
